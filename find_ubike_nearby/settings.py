@@ -25,7 +25,9 @@ SECRET_KEY = 'w9(_$kom8*%64_#dv4f1vrm=sc*d9=95+owzcgxbeqaneu5sd-'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'find-ubike-nearby.herokuapp.com',
+]
 
 
 # Application definition
