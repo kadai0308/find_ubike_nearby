@@ -156,7 +156,7 @@ def search_ubike_stat (request, city):
                 col_range = list(range(col - iter_num, col + iter_num + 1))
                 boxes = CityBox.objects.filter(row__in = row_range, col__in = col_range)
                 for box in boxes:
-                    stations = stations.union(set(box.ubikestat_set.filter(~Q(bemp = 0))))
+                    stations = stations.union(set(box.ubikestat_set.filter(~Q(sbi = 0))))
                 iter_num += 1
 
             stations = list(stations)
