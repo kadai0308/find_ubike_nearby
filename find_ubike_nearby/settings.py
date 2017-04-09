@@ -26,6 +26,7 @@ SECRET_KEY = 'w9(_$kom8*%64_#dv4f1vrm=sc*d9=95+owzcgxbeqaneu5sd-'
 DEBUG = True
 
 ALLOWED_HOSTS = [
+    '127.0.0.1',
     'find-ubike-nearby.herokuapp.com',
 ]
 
@@ -156,6 +157,11 @@ LOGGING = {
         }
     }
 }
+
+# heroku database settings
+
+import dj_database_url
+DATABASES['default'] =  dj_database_url.config()
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.11/topics/i18n/
