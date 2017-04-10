@@ -27,5 +27,9 @@ urlpatterns += (
 )
 
 urlpatterns += (
+  url(r'^sync_ubikes_amount/$', api.sync_ubikes_amount), 
+)
+
+urlpatterns += (
   url(r'^v1/ubike-station/(?P<city>[a-z]+)/$', api.search_ubike_stat), 
 )

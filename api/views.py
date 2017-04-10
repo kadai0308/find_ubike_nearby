@@ -9,9 +9,12 @@ import logging
 from decimal import *
 import urllib
 import sys
+import heapq
 
 import json
 import requests
+import django_rq
+import datetime
 from django_rq import job
 import time
 
@@ -62,28 +65,54 @@ def parse_stat_data (request):
             sbi = stat_data['sbi']
         )
 
-@job('high')
-def sync_ubikes_amount ():
-    while True:
-        # get arealist
-        web_content = str(requests.get('http://taipei.youbike.com.tw/cht/f12.php').content)
-        arealist = web_content.split('arealist=')[1][2:-3]
-        # decode arealist to stat_data
-        all_stat_data = json.loads(urllib.parse.unquote(arealist))
-        # update sbi & bemp data
-        try:
-            for stat_id, stat_data in all_stat_data.items():
-                stat = UbikeStat.objects.get(name = stat_data.get('sna', ''))
-                stat.bemp = stat_data.get('bemp', 0)
-                stat.sbi = stat_data.get('sbi', 0)
-                stat.save()
-        except Exception as e:
-            print (e)
-        finally:
-            print ('update completed...')
 
-        time.sleep(30)
-sync_ubikes_amount.delay()
+def sync_ubikes_amount_func():
+    # get arealist
+    web_content = str(requests.get('http://taipei.youbike.com.tw/cht/f12.php').content)
+    arealist = web_content.split('arealist=')[1][2:-3]
+    # decode arealist to stat_data
+    all_stat_data = json.loads(urllib.parse.unquote(arealist))
+    # update sbi & bemp data
+    try:
+        for stat_id, stat_data in all_stat_data.items():
+            stat = UbikeStat.objects.get(name = stat_data.get('sna', ''))
+            stat.bemp = stat_data.get('bemp', 0)
+            stat.sbi = stat_data.get('sbi', 0)
+            stat.save()
+    except Exception as e:
+        print (e)
+    finally:
+        print ('update completed...')
+
+def sync_ubikes_amount (request):
+    scheduler = django_rq.get_scheduler('default')
+
+    scheduler.schedule(
+        scheduled_time = datetime.datetime.utcnow(),
+        func = sync_ubikes_amount_func,
+        interval = 10,
+    )
+
+# def sync_ubikes_amount ():
+#     while True:
+#         # get arealist
+#         web_content = str(requests.get('http://taipei.youbike.com.tw/cht/f12.php').content)
+#         arealist = web_content.split('arealist=')[1][2:-3]
+#         # decode arealist to stat_data
+#         all_stat_data = json.loads(urllib.parse.unquote(arealist))
+#         # update sbi & bemp data
+#         try:
+#             for stat_id, stat_data in all_stat_data.items():
+#                 stat = UbikeStat.objects.get(name = stat_data.get('sna', ''))
+#                 stat.bemp = stat_data.get('bemp', 0)
+#                 stat.sbi = stat_data.get('sbi', 0)
+#                 stat.save()
+#         except Exception as e:
+#             print (e)
+#         finally:
+#             print ('update completed...')
+
+#         time.sleep(30)
 
 
 def search_ubike_stat (request, city):
@@ -145,25 +174,21 @@ def search_ubike_stat (request, city):
             # box of current postition
             center_box = CityBox.objects.get(row = row, col = col)
 
-            stations = set()
+            stations = []
             iter_num = 1
             row = int(row)
             col = int(col)
 
-            # find the nearest 2 ubike stations
+            # find 2 the nearest ubike stations
             while (len(stations) < 5):
                 row_range = list(range(row - iter_num, row + iter_num + 1))
                 col_range = list(range(col - iter_num, col + iter_num + 1))
                 boxes = CityBox.objects.filter(row__in = row_range, col__in = col_range)
-                for box in boxes:
-                    stations = stations.union(set(box.ubikestat_set.filter(~Q(sbi = 0))))
+                stations = list(boxes.exclude(ubikestat__isnull = True).values('ubikestat__name', 'ubikestat__sbi', 'ubikestat__lat', 'ubikestat__lng'))
                 iter_num += 1
 
-            stations = list(stations)
-            stations.sort(key = lambda x: (current_lat - x.lat)**2 + (current_lng - x.lng)**2)
-            
-            success['result'].append({"station": stations[0].name, "num_ubike": stations[0].sbi})
-            success['result'].append({"station": stations[1].name, "num_ubike": stations[1].sbi})
+            result = heapq.nsmallest(2, stations, key = lambda x: (current_lat - x['ubikestat__lat'])**2 + (current_lng - x['ubikestat__lng'])**2)
+            success['result'] = [{'name': x['ubikestat__name'], 'num_ubike': x['ubikestat__sbi']} for x in result]
 
             return_obj = success
 
