@@ -66,54 +66,55 @@ def parse_stat_data (request):
         )
 
 
-def sync_ubikes_amount_func():
-    # get arealist
-    web_content = str(requests.get('http://taipei.youbike.com.tw/cht/f12.php').content)
-    arealist = web_content.split('arealist=')[1][2:-3]
-    # decode arealist to stat_data
-    all_stat_data = json.loads(urllib.parse.unquote(arealist))
-    # update sbi & bemp data
-    try:
-        for stat_id, stat_data in all_stat_data.items():
-            stat = UbikeStat.objects.get(name = stat_data.get('sna', ''))
-            stat.bemp = stat_data.get('bemp', 0)
-            stat.sbi = stat_data.get('sbi', 0)
-            stat.save()
-    except Exception as e:
-        print (e)
-    finally:
-        print ('update completed...')
+# def sync_ubikes_amount_func():
+#     # get arealist
+#     web_content = str(requests.get('http://taipei.youbike.com.tw/cht/f12.php').content)
+#     arealist = web_content.split('arealist=')[1][2:-3]
+#     # decode arealist to stat_data
+#     all_stat_data = json.loads(urllib.parse.unquote(arealist))
+#     # update sbi & bemp data
+#     try:
+#         for stat_id, stat_data in all_stat_data.items():
+#             stat = UbikeStat.objects.get(name = stat_data.get('sna', ''))
+#             stat.bemp = stat_data.get('bemp', 0)
+#             stat.sbi = stat_data.get('sbi', 0)
+#             stat.save()
+#     except Exception as e:
+#         print (e)
+#     finally:
+#         print ('update completed...')
 
-def sync_ubikes_amount (request):
-    scheduler = django_rq.get_scheduler('high')
+# def sync_ubikes_amount (request):
+#     scheduler = django_rq.get_scheduler('high')
 
-    scheduler.schedule(
-        scheduled_time = datetime.datetime.utcnow(),
-        func = sync_ubikes_amount_func,
-        interval = 10,
-    )
+#     scheduler.schedule(
+#         scheduled_time = datetime.datetime.utcnow(),
+#         func = sync_ubikes_amount_func,
+#         interval = 10,
+#     )
 
-# def sync_ubikes_amount ():
-#     while True:
-#         # get arealist
-#         web_content = str(requests.get('http://taipei.youbike.com.tw/cht/f12.php').content)
-#         arealist = web_content.split('arealist=')[1][2:-3]
-#         # decode arealist to stat_data
-#         all_stat_data = json.loads(urllib.parse.unquote(arealist))
-#         # update sbi & bemp data
-#         try:
-#             for stat_id, stat_data in all_stat_data.items():
-#                 stat = UbikeStat.objects.get(name = stat_data.get('sna', ''))
-#                 stat.bemp = stat_data.get('bemp', 0)
-#                 stat.sbi = stat_data.get('sbi', 0)
-#                 stat.save()
-#         except Exception as e:
-#             print (e)
-#         finally:
-#             print ('update completed...')
+@job('high')
+def sync_ubikes_amount ():
+    while True:
+        # get arealist
+        web_content = str(requests.get('http://taipei.youbike.com.tw/cht/f12.php').content)
+        arealist = web_content.split('arealist=')[1][2:-3]
+        # decode arealist to stat_data
+        all_stat_data = json.loads(urllib.parse.unquote(arealist))
+        # update sbi & bemp data
+        try:
+            for stat_id, stat_data in all_stat_data.items():
+                stat = UbikeStat.objects.get(name = stat_data.get('sna', ''))
+                stat.bemp = stat_data.get('bemp', 0)
+                stat.sbi = stat_data.get('sbi', 0)
+                stat.save()
+        except Exception as e:
+            print (e)
+        finally:
+            print ('update completed...')
 
-#         time.sleep(30)
-
+        time.sleep(2)
+sync_ubikes_amount.delay()
 
 def search_ubike_stat (request, city):
     # 0: OK
