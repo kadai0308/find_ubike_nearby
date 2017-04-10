@@ -85,7 +85,7 @@ def sync_ubikes_amount_func():
         print ('update completed...')
 
 def sync_ubikes_amount (request):
-    scheduler = django_rq.get_scheduler('default')
+    scheduler = django_rq.get_scheduler('high')
 
     scheduler.schedule(
         scheduled_time = datetime.datetime.utcnow(),
