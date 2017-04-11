@@ -23,10 +23,6 @@ urlpatterns = (
 )
 
 urlpatterns += (
-  url(r'^parse_stat_data/$', api.parse_stat_data),
-)
-
-urlpatterns += (
   url(r'^sync_ubikes_amount/$', api.sync_ubikes_amount), 
 )
 
