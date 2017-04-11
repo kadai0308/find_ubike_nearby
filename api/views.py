@@ -23,6 +23,26 @@ WIDTH = Decimal('0.0104332')
 HEIGHT = Decimal('0.0125203')
 logger = logging.getLogger(__name__)
 
+def creat_ubike_stat (city, stat_data):
+    city = City.objects.get(name = city)
+    t_lat = city.l_lat
+    t_lng = city.l_lng
+    s_lat = Decimal(stat_data.get('lat', ''))
+    s_lng = Decimal(stat_data.get('lng', ''))
+    row = (t_lat - s_lat) // HEIGHT
+    col = (s_lng - t_lng) // WIDTH
+    name = stat_data.get('sna', '')
+    # print (name, row, col)
+    box = CityBox.objects.get(row = row, col = col)
+    UbikeStat.objects.create(
+        name = name, 
+        lat = s_lat,
+        lng = s_lng,
+        box = box, 
+        bemp = stat_data['bemp'],
+        sbi = stat_data['sbi']
+    )
+
 def parse_stat_data (request):
     # setting data
     City.objects.create(
@@ -44,30 +64,15 @@ def parse_stat_data (request):
     arealist = web_content.split('arealist=')[1][2:-3]
     # decode arealist to stat_data
     all_stat_data = json.loads(urllib.parse.unquote(arealist))
-    # city data
-    taipei = City.objects.get(name = 'taipei')
-    t_lat = taipei.l_lat
-    t_lng = taipei.l_lng
 
     for stat_id, stat_data in all_stat_data.items():
-        s_lat = Decimal(stat_data.get('lat', ''))
-        s_lng = Decimal(stat_data.get('lng', ''))
-        row = (t_lat - s_lat) // HEIGHT
-        col = (s_lng - t_lng) // WIDTH
-        name = stat_data.get('sna', '')
-        # print (name, row, col)
-        box = CityBox.objects.get(row = row, col = col)
-        UbikeStat.objects.create(
-            name = name, 
-            lat = s_lat,
-            lng = s_lng,
-            box = box, 
-            bemp = stat_data['bemp'],
-            sbi = stat_data['sbi']
-        )
+        creat_ubike_stat('taipei', stat_data)
 
 
 def sync_ubikes_amount_func():
+    taipei = City.objects.get(name = 'taipei')
+    t_lat = taipei.l_lat
+    t_lng = taipei.l_lng
     # get arealist
     web_content = str(requests.get('http://taipei.youbike.com.tw/cht/f12.php').content)
     arealist = web_content.split('arealist=')[1][2:-3]
@@ -77,13 +82,17 @@ def sync_ubikes_amount_func():
     try:
         for stat_id, stat_data in all_stat_data.items():
             print (stat_data.get('sna', ''))
-            stat = UbikeStat.objects.get(name = stat_data.get('sna', ''))
-            stat.bemp = stat_data.get('bemp', 0)
-            stat.sbi = stat_data.get('sbi', 0)
-            stat.save()
+            name = stat_data.get('sna', '')
+            if not UbikeStat.objects.filter(name = name).exists():
+                creat_ubike_stat('taipei', stat_data)
+            else:
+                stat = UbikeStat.objects.get(name = stat_data.get('sna', ''))
+                stat.bemp = stat_data.get('bemp', 0)
+                stat.sbi = stat_data.get('sbi', 0)
+                stat.save()
     except Exception as e:
         print (sys.exc_info())
-        
+
     finally:
         print ('update completed...')
 
