@@ -5,18 +5,19 @@ from django.http import JsonResponse
 
 from api.models import City, CityBox, UbikeStat
 
+# built in package
 import logging
 from decimal import *
 import urllib
 import sys
 import heapq
-
+import datetime
+import time
 import json
+
+# pip package 
 import requests
 import django_rq
-import datetime
-from django_rq import job
-import time
 
 WIDTH = Decimal('0.0104332')
 HEIGHT = Decimal('0.0125203')
