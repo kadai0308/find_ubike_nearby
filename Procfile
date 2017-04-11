@@ -1,3 +1,3 @@
 web: gunicorn find_ubike_nearby.wsgi server.log
 worker: python manage.py rqworker high default low
-clock: rqscheduler -u $REDISTOGO_URL -i 30
+clock: rqscheduler -u $REDISTOGO_URL -i 20
