@@ -76,13 +76,14 @@ def sync_ubikes_amount_func():
     # update sbi & bemp data
     try:
         for stat_id, stat_data in all_stat_data.items():
+            print (stat_data.get('sna', ''))
             stat = UbikeStat.objects.get(name = stat_data.get('sna', ''))
             stat.bemp = stat_data.get('bemp', 0)
             stat.sbi = stat_data.get('sbi', 0)
-            print (stat.name, stat.sbi)
             stat.save()
     except Exception as e:
         print (sys.exc_info())
+        
     finally:
         print ('update completed...')
 
