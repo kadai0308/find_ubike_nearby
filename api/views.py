@@ -178,7 +178,7 @@ def search_ubike_stat (request, city):
                 iter_num += 1
 
             result = heapq.nsmallest(2, stations, key = lambda x: (current_lat - x['ubikestat__lat'])**2 + (current_lng - x['ubikestat__lng'])**2)
-            success['result'] = [{'name': x['ubikestat__name'], 'num_ubike': x['ubikestat__sbi']} for x in result]
+            success['result'] = [{'name': x['ubikestat__name'], 'num_ubike': x['ubikestat__sbi']} for x in result if x['ubikestat__sbi'] != 0]
 
             return_obj = success
 
