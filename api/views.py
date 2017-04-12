@@ -170,7 +170,7 @@ def search_ubike_stat (request, city):
             col = int(col)
 
             # find 2 the nearest ubike stations
-            while (len(stations) < 5):
+            while (len(stations) < 20):
                 row_range = list(range(row - iter_num, row + iter_num + 1))
                 col_range = list(range(col - iter_num, col + iter_num + 1))
                 boxes = CityBox.objects.filter(row__in = row_range, col__in = col_range)
