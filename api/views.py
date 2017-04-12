@@ -147,8 +147,8 @@ def search_ubike_stat (request, city):
             google_geo_api = 'http://maps.googleapis.com/maps/api/geocode/json?address={},{}'.format(lat, lng)
             rep = requests.get(google_geo_api).json()
             if rep['status'] == "OK":
-                city_name = rep['results'][-2]['address_components'][0]['short_name']
-                if city_name != "Taipei City":
+                index = rep['results'][0]['formatted_address'].find(', Taipei City,')
+                if index == -1:
                     raise Exception('NotInTaipie')
             else:
                 raise Exception('NotInTaipie')
