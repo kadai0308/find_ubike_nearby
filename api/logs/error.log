@@ -1,0 +1,5 @@
+level: ERROR 
+time: 2017-04-12 05:43:28,105 
+path: /Users/davy/kadai-s-project/find_ubike_nearby/api/views.py 
+message: 'UbikeStat' object has no attribute 'sb'
+

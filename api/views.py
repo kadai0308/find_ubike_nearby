@@ -173,12 +173,12 @@ def search_ubike_stat (request, city):
             while (len(stations) < 20):
                 row_range = list(range(row - iter_num, row + iter_num + 1))
                 col_range = list(range(col - iter_num, col + iter_num + 1))
-                boxes = CityBox.objects.filter(row__in = row_range, col__in = col_range)
-                stations = list(boxes.exclude(ubikestat__isnull = True).values('ubikestat__name', 'ubikestat__sbi', 'ubikestat__lat', 'ubikestat__lng'))
+                stations = UbikeStat.objects.filter(box__row__in = row_range, box__col__in = col_range).filter(~Q(sbi = 0))
+                stations = list(stations)
                 iter_num += 1
 
-            result = heapq.nsmallest(2, stations, key = lambda x: (current_lat - x['ubikestat__lat'])**2 + (current_lng - x['ubikestat__lng'])**2)
-            success['result'] = [{'name': x['ubikestat__name'], 'num_ubike': x['ubikestat__sbi']} for x in result if x['ubikestat__sbi'] != 0]
+            result = heapq.nsmallest(2, stations, key = lambda x: (current_lat - x.lat)**2 + (current_lng - x.lng)**2)
+            success['result'] = [{'name': x.name, 'num_ubike': x.sbi} for x in result]
 
             return_obj = success
 
