@@ -146,6 +146,7 @@ def search_ubike_stat (request, city):
             # check location in Taipei or not
             google_geo_api = 'http://maps.googleapis.com/maps/api/geocode/json?address={},{}'.format(lat, lng)
             rep = requests.get(google_geo_api).json()
+            print (rep)
             if rep['status'] == "OK":
                 index = rep['results'][0]['formatted_address'].find(', Taipei City,')
                 if index == -1:
