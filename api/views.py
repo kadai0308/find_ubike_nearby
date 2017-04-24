@@ -171,6 +171,7 @@ def search_ubike_stat (request, city):
             col = int(col)
 
             # find 2 the nearest ubike stations
+# <<<<<<< HEAD
             while (len(stations) < 20):
                 row_range = list(range(row - iter_num, row + iter_num + 1))
                 col_range = list(range(col - iter_num, col + iter_num + 1))
@@ -180,6 +181,17 @@ def search_ubike_stat (request, city):
 
             result = heapq.nsmallest(2, stations, key = lambda x: (current_lat - x.lat)**2 + (current_lng - x.lng)**2)
             success['result'] = [{'name': x.name, 'num_ubike': x.sbi} for x in result]
+# =======
+#             while (len(stations) < 5):
+#                 row_range = list(range(row - iter_num, row + iter_num + 1))
+#                 col_range = list(range(col - iter_num, col + iter_num + 1))
+#                 boxes = CityBox.objects.filter(row__in = row_range, col__in = col_range)
+#                 stations = list(boxes.exclude(ubikestat__isnull = True).values('ubikestat__name', 'ubikestat__sbi', 'ubikestat__lat', 'ubikestat__lng'))
+#                 iter_num += 1
+
+#             result = heapq.nsmallest(2, stations, key = lambda x: (current_lat - x['ubikestat__lat'])**2 + (current_lng - x['ubikestat__lng'])**2)
+#             success['result'] = [{'name': x['ubikestat__name'], 'num_ubike': x['ubikestat__sbi']} for x in result]
+# >>>>>>> 5b1b45bbfa1ed7b8bf0be0ed03e9c339b7fe9a4f
 
             return_obj = success
 
